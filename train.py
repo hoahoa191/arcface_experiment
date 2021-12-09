@@ -8,9 +8,8 @@ from tqdm import tqdm
 from modules.preprocess import load_tfrecord_dataset
 from modules.models import getModel
 from modules.losses import SoftmaxLoss
-from modules.utils import set_memory_growth
+from modules.utils import *
 from test import validate
-from modules.plot import *
 
 ######################
 #Set GPU
@@ -94,14 +93,6 @@ def main(cofg):
                 ".format(step // steps_per_epoch + 1,  train_loss.result(), acc))
             train_loss.reset_state()
              
-    #plot training
-    plot_his(range(len(history['loss'])), history['loss'], "Traning Loss",
-          xlabel="Epoch", ylabel="Loss",
-          savepath=cofg['save_dir'] + "/figures/loss_{}.png".format(cofg['model_name']))
-    plot_his(range(len(history['acc'])), history['acc'], "Validation Accuracy",
-          xlabel="Epoch", ylabel="Accuracy",
-          savepath=cofg['save_dir'] + "/figures/acc_{}.png".format(cofg['model_name']))
-
 
 if __name__ == "__main__":
     args = get_args()

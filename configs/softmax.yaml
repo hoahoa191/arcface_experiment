@@ -1,0 +1,35 @@
+# model params
+model_name : softmax
+backbone: ResNet50
+headtype: NormHead
+
+image_size: 112
+embd_size: 512
+class_num: 5000
+sample_num: 339709
+
+#-------------------
+# hyper params
+weight_decay: !!float 5e-4
+logits_scale: 64.0
+logits_margin: 0.5
+
+#optimizer
+momentum: 0.9
+base_lr : 0.1
+decay_rate: 0.95
+decay_steps: 1500
+
+#--------------------
+# run params
+
+batch_size: 64
+epoch_num: 25
+step_per_save: 1000
+
+# paths <SHOULD JUST CHANGE TRAIN DATA!>
+
+train_data: "/content/drive/MyDrive/Colab Notebooks/facenet/5kdataset.tfrecord"
+val_data: {'lfw': '/content/drive/MyDrive/Colab Notebooks/test_data'}
+output_dir: './output'
+save_dir : '/content/drive/MyDrive/Colab Notebooks/facenet/save'

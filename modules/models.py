@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Input
 from tensorflow.keras.applications import  MobileNetV2, ResNet50V2, InceptionResNetV2, ResNet152V2
-from .layers import BatchNormalization, ArcLayer
+from .layers import BatchNormalization, CosLayer
 
 
 def _regularizer(weights_decay=5e-4):
@@ -38,15 +38,12 @@ def OutputLayer(embd_shape, w_decay=5e-4, name='OutputLayer'):
     return output_layer
 
 
-def ArcHead(num_classes, margin=0.5, logist_scale=64, name='ArcHead'):
-    """Arc Head"""
-    def arc_head(x_in, y_in):
+def ArcHead(num_classes, name='ArcHead'):
+    """Normalize input and weight before multiplication Head"""
+    def arc_head(x_in):
         x = inputs1 = Input(x_in.shape[1:])
-        y = Input(y_in.shape[1:])
-        x = ArcLayer(num_classes=num_classes,
-                                    margin=margin,
-                                    logist_scale=logist_scale)(x, y)
-        return Model((inputs1, y), x, name=name)((x_in, y_in))
+        x = CosLayer(num_classes=num_classes)(x)
+        return Model((inputs1), x, name=name)((x_in))
     return arc_head
 
 
@@ -59,8 +56,7 @@ def NormHead(num_classes, w_decay=5e-4, name='NormHead'):
     return norm_head
 
 
-def getModel(input_shape=None, channels=3, num_classes=None, name='',
-                 margin=0.5, logist_scale=64, embd_shape=512,
+def getModel(input_shape=None, num_classes=None, name='', embd_shape=512,
                  head_type='ArcHead', backbone_type='ResNet50',
                  w_decay=5e-4, training=False, **kwargs):
     """Arc Face Model"""
@@ -70,12 +66,12 @@ def getModel(input_shape=None, channels=3, num_classes=None, name='',
 
     if training:
         assert num_classes is not None
-        labels = Input([], name='label')
+        # labels = Input([], name='label')
         if head_type == 'ArcHead':
-            logist = ArcHead(num_classes=num_classes, margin=margin,
-                             logist_scale=logist_scale)(embds, labels)
+            logist = ArcHead(num_classes=num_classes)(embds)
         else:
             logist = NormHead(num_classes=num_classes, w_decay=w_decay)(embds)
-        return Model((inputs, labels), logist, name=name)
+        # return Model((inputs, labels), logist, name=name)
+        return Model((inputs), logist, name=name)
     else:
         return Model(inputs, embds, name=name)

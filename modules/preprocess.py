@@ -20,7 +20,8 @@ def _parse_tfrecord(binary_img=True):
 
         x_train = _transform_images()(x_train)
         y_train = _transform_targets(y_train)
-        return (x_train, y_train), y_train
+        # return (x_train, y_train), y_train
+        return (x_train), y_train
     return parse_tfrecord
 
 
