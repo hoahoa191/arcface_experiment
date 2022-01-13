@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Input
 from tensorflow.keras.applications import  MobileNetV2, ResNet50V2, InceptionResNetV2, ResNet152V2
-from .layers import BatchNormalization, CosLayer
+from .layers import BatchNormalization, CosLayer, ArcLayer 
 
 
 def _regularizer(weights_decay=5e-4):
@@ -17,8 +17,6 @@ def Backbone(backbone_type='ResNet50'):
             return ResNet50V2(input_shape=x_in.shape[1:], include_top=False)(x_in)
         elif backbone_type == 'mobinet':
             return MobileNetV2(input_shape=x_in.shape[1:], include_top=False)(x_in)
-        elif backbone_type == 'resnet152':
-            return ResNet152V2(input_shape=x_in.shape[1:], include_top=False)(x_in)
         elif backbone_type == 'inceptionresnet':
             return InceptionResNetV2(input_shape=x_in.shape[1:], include_top=False)(x_in)
         else:
@@ -37,8 +35,15 @@ def OutputLayer(embd_shape, w_decay=5e-4, name='OutputLayer'):
         return Model(inputs, x, name=name)(x_in)
     return output_layer
 
-
 def ArcHead(num_classes, name='ArcHead'):
+    """Normalize input and weight before multiplication Head"""
+    def arc_head(x_in):
+        x = inputs1 = Input(x_in.shape[1:])
+        x = CosLayer(num_classes=num_classes)(x)
+        return Model((inputs1), x, name=name)((x_in))
+    return arc_head
+
+def CosHead(num_classes, name='ArcHead'):
     """Normalize input and weight before multiplication Head"""
     def arc_head(x_in):
         x = inputs1 = Input(x_in.shape[1:])

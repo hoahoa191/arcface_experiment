@@ -16,7 +16,7 @@ def _parse_tfrecord(binary_img=True):
             image_encoded = tf.io.read_file(x['image/img_path'])
             x_train = tf.image.decode_jpeg(image_encoded, channels=3)
 
-        y_train = tf.cast(x['image/source_id'], tf.int32)
+        y_train = tf.cast(x['image/source_id'], tf.int64)
 
         x_train = _transform_images()(x_train)
         y_train = _transform_targets(y_train)
@@ -32,7 +32,7 @@ def _transform_images():
         x_train = tf.image.random_flip_left_right(x_train)
         x_train = tf.image.random_saturation(x_train, 0.6, 1.4)
         x_train = tf.image.random_brightness(x_train, 0.4)
-        x_train = tf.cast(x_train,tf.float) / 255
+        x_train = tf.cast(x_train,tf.float32) / 255
         return x_train
     return transform_images
 
