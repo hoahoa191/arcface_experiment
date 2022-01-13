@@ -66,12 +66,10 @@ def getModel(input_shape=None, num_classes=None, name='', embd_shape=512,
 
     if training:
         assert num_classes is not None
-        # labels = Input([], name='label')
         if head_type == 'ArcHead':
             logist = ArcHead(num_classes=num_classes)(embds)
         else:
             logist = NormHead(num_classes=num_classes, w_decay=w_decay)(embds)
-        # return Model((inputs, labels), logist, name=name)
         return Model((inputs), logist, name=name)
     else:
         return Model(inputs, embds, name=name)

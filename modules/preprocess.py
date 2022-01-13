@@ -32,7 +32,7 @@ def _transform_images():
         x_train = tf.image.random_flip_left_right(x_train)
         x_train = tf.image.random_saturation(x_train, 0.6, 1.4)
         x_train = tf.image.random_brightness(x_train, 0.4)
-        x_train = x_train / 255
+        x_train = tf.cast(x_train,tf.float) / 255
         return x_train
     return transform_images
 
