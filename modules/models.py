@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Input
-from tensorflow.keras.applications import  MobileNetV2, ResNet50V2, InceptionResNetV2, ResNet152V2
+from tensorflow.keras.applications import  MobileNetV2, ResNet50V2, InceptionResNetV2
 from .layers import BatchNormalization, CosLayer, ArcLayer 
 
 
