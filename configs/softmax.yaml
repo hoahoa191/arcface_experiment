@@ -2,6 +2,7 @@
 model_name : softmax
 backbone: ResNet50
 headtype: NormHead
+loss    : softmax
 
 image_size: 112
 embd_size: 512

@@ -35,13 +35,15 @@ def OutputLayer(embd_shape, w_decay=5e-4, name='OutputLayer'):
         return Model(inputs, x, name=name)(x_in)
     return output_layer
 
+#### The below code is useless ################
 def ArcHead(num_classes, name='ArcHead'):
-    """Normalize input and weight before multiplication Head"""
+    """Normalize input and weight before multiplication Head then add margin into logits"""
     def arc_head(x_in):
         x = inputs1 = Input(x_in.shape[1:])
-        x = CosLayer(num_classes=num_classes)(x)
+        x = ArcLayer(num_classes=num_classes)(x)
         return Model((inputs1), x, name=name)((x_in))
     return arc_head
+#### The upper code is useless ################
 
 def CosHead(num_classes, name='ArcHead'):
     """Normalize input and weight before multiplication Head"""
@@ -71,9 +73,14 @@ def getModel(input_shape=None, num_classes=None, name='', embd_shape=512,
 
     if training:
         assert num_classes is not None
-        if head_type == 'ArcHead':
+        if head_type.lower() == 'archead':
+            print("use ArcHead")
             logist = ArcHead(num_classes=num_classes)(embds)
+        elif head_type.lower() == 'coshead':
+            print("use CosHead")
+            logist = CosHead(num_classes=num_classes)(embds)
         else:
+            print("use NormHead")
             logist = NormHead(num_classes=num_classes, w_decay=w_decay)(embds)
         return Model((inputs), logist, name=name)
     else:

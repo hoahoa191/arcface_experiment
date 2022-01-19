@@ -1,37 +1,40 @@
-# model params
-model_name : arcface
-backbone: ResNet50
+#model params
+model_name : cosloss
+backbone: Resnet50
 headtype: CosHead
-loss    : arcloss
+loss: Cosloss
+#-----------
 
 image_size: 112
 embd_size: 512
 class_num: 5000
 sample_num: 339709
 
-#-------------------
-# hyper params
+##-------------------
+## hyper params
 weight_decay: !!float 5e-4
 logits_scale: 64.0
-logits_margin: 0.5
+logits_margin: 0.4
 
-#optimizer
+##optimizer
 momentum: 0.9
-base_lr : 0.05
-decay_rate: 0.05
-decay_steps: 1500
+base_lr : 0.04
+decay   : True
+lr_steps: [40000, 60000, 80000]
+lr_values: [0.004, 0.0012, 0.0004]
 
-#--------------------
+##--------------------
 # run params
-
 batch_size: 64
-epoch_num: 25
-step_per_save: 1000
+init_epoch: 1
+epoch_num: 20
+step_per_save: 5000
+val_size: 0.25
 
-# # paths <SHOULD JUST CHANGE TRAIN DATA!>
+## # paths <SHOULD JUST CHANGE TRAIN DATA!>
 
 train_data: "/home/nhuntn/K64/FaceRecognition/data/5kdataset.tfrecord"
 val_data: {'lfw': '/home/nhuntn/K64/FaceRecognition/data/lfw', 'cfp_ff': '/home/nhuntn/K64/FaceRecognition/data/cfp_ff', 'cfp_fp': '/home/nhuntn/K64/FaceRecognition/data/cfp_fp', 'agedb_30':'/home/nhuntn/K64/FaceRecognition/data/agedb_30', 'vgg2_fp': '/home/nhuntn/K64/FaceRecognition/data/vgg2_fp'}
 
 output_dir: './output'
-save_dir : './save'
+save_dir : '/home/nhuntn/K64/FaceRecognition/saves'
