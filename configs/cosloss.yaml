@@ -2,7 +2,7 @@
 model_name : cosloss
 backbone: Resnet50
 headtype: CosHead
-loss: Cosloss
+loss    : Cosloss
 #-----------
 
 image_size: 112
@@ -27,14 +27,11 @@ lr_values: [0.004, 0.0012, 0.0004]
 # run params
 batch_size: 64
 init_epoch: 1
-epoch_num: 20
+epoch_num: 25
 step_per_save: 5000
-val_size: 0.25
 
 ## # paths <SHOULD JUST CHANGE TRAIN DATA!>
 
-train_data: "/home/nhuntn/K64/FaceRecognition/data/5kdataset.tfrecord"
-val_data: {'lfw': '/home/nhuntn/K64/FaceRecognition/data/lfw', 'cfp_ff': '/home/nhuntn/K64/FaceRecognition/data/cfp_ff', 'cfp_fp': '/home/nhuntn/K64/FaceRecognition/data/cfp_fp', 'agedb_30':'/home/nhuntn/K64/FaceRecognition/data/agedb_30', 'vgg2_fp': '/home/nhuntn/K64/FaceRecognition/data/vgg2_fp'}
-
-output_dir: './output'
-save_dir : '/home/nhuntn/K64/FaceRecognition/saves'
+train_data: "C:/Users/84982/Documents/GitHub/arcface_experiment/data/5kdataset.tfrecord"
+val_data: {'lfw': 'C:/Users/84982/Documents/GitHub/arcface_experiment/data/test_data', 'cfp_ff': '/home/nhuntn/K64/FaceRecognition/data/cfp_ff', 'cfp_fp': '/home/nhuntn/K64/FaceRecognition/data/cfp_fp', 'agedb_30':'/home/nhuntn/K64/FaceRecognition/data/agedb_30', 'vgg2_fp': '/home/nhuntn/K64/FaceRecognition/data/vgg2_fp'}
+save_dir : 'C:/Users/84982/Documents/GitHub/arcface_experiment/save'

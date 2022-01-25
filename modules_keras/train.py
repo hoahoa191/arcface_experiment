@@ -43,8 +43,8 @@ def main(cofg, mode='custome'):
         os.makedirs(log_path)
         os.makedirs(checkpoint_prefix)
     #dataset
-    train_dataset = load_tfrecord_dataset(cofg['train_data'], cofg['batch_size'],
-                          binary_img=True, shuffle=True, buffer_size=10240)
+    trainloader = load_tfrecord_dataset(cfg['train_data'], cfg['batch_size'],
+                          dtype="train", shuffle=True, buffer_size=1028, transform_img=True)
     #model
     model = getModel(input_shape=(cofg['image_size'], cofg['image_size'], 3),
                      backbone_type=cofg['backbone'],
@@ -126,7 +126,7 @@ def main(cofg, mode='custome'):
 
         model.fit(train_dataset, epochs=cofg['epoch_num'],
                 initial_epoch=start_epoch,
-                steps_per_epoch=steps_per_epoch * 2,
+                steps_per_epoch=steps_per_epoch,
                 callbacks=callbacks)
 
 

@@ -23,7 +23,7 @@ decay_steps: 1500
 
 #--------------------
 # run params
-
+init_epoch: 1
 batch_size: 64
 epoch_num: 25
 step_per_save: 1000

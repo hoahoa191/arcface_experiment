@@ -1,8 +1,8 @@
 import numpy as np
 import tensorflow as tf
 import os
-from modules_keras.preprocess import _transform_images
-from modules_keras.utils import plot_roc
+import time
+import tqdm
 
 def l2_norm(x, axis=1):
     """l2 norm"""
@@ -40,36 +40,34 @@ def calculate_roc(thresholds, dists, actual_issame):
     #fpr = np.mean(fprs)
     return tprs, fprs, accuracy, best_thresholds
 
-def evaluate(test_path, pair_file, model, isplot=True, name_plot=""):
+
+def get_featurs(model, dataset, *kwargs):
     result = {'issame': [], 'prob':[]}
-    with open(os.path.join(pair_file)) as src:
-        for line in src:
-            if line == "" or len(line.split(" ")) < 3 :
-                continue
+    for img1, img2, is_same in tqdm.tqdm(dataset):
+        is_same = is_same.numpy() == 1
+        
+        embds_1 = model(img1)
+        embds_2 = model(img2)
+        
+        embds_1 = l2_norm(embds_1)
+        embds_2 = l2_norm(embds_2)
 
-            line = line.split(" ")
-            img1 = tf.io.read_file(os.path.join(test_path,line[0]))
-            img2 = tf.io.read_file(os.path.join(test_path,line[1]))
+        diff = np.subtract(embds_1, embds_2)
+        dist = np.sum(np.square(diff), axis=1)
 
-            img1 = _transform_images()(tf.image.decode_jpeg(img1, channels=3))
-            img2 = _transform_images()(tf.image.decode_jpeg(img2, channels=3))
-
-            batch = tf.Variable([img1, img2])
-            embds = model(batch)
-            embds = l2_norm(embds)
-
-            diff = np.subtract(embds[0], embds[1])
-            dist = np.sum(np.square(diff))
-
-            result['issame'].append(int(line[2])==1)
-            result['prob'].append(dist)
+        result['issame'].extend(list(is_same))
+        result['prob'].extend(list(dist))
     
     thresholds = np.arange(0, 4, 0.01)
     dists = np.array(result['prob'])
     actual_issame = np.array(result['issame']) 
     tpr, fpr, acc, best = calculate_roc(thresholds, dists, actual_issame)
-    print("best thres:  {} \t best acc: {}".format(best, np.max(acc)))
-    if isplot:
-        plot_roc(fpr, tpr, 
-        "/home/nhuntn/K64/FaceRecognition/save/figures/{}.png".format(name_plot), max_acc=np.max(acc))
-    return np.max(acc)
+    return np.mean(acc)
+
+def evaluate_model(model, dataset, device=None):
+    s = time.time()
+    acc= get_featurs(model, dataset, device=device)
+    t = time.time() - s
+    print('\t--total time is {}'.format(t))
+    print('\t--lfw face verification accuracy: ', acc)
+    return acc
