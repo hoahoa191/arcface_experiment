@@ -51,7 +51,8 @@ def load_tfrecord_dataset(tfrecord_path, batch_size,
                           dtype="train", shuffle=True, buffer_size=10240, transform_img=True):
     """load dataset from tfrecord"""
     raw_dataset = tf.data.TFRecordDataset(tfrecord_path)
-    # raw_dataset = raw_dataset.repeat()
+    if dtype == "train":
+        raw_dataset = raw_dataset.repeat()
     if shuffle:
         raw_dataset = raw_dataset.shuffle(buffer_size=buffer_size)
     dataset = raw_dataset.map(

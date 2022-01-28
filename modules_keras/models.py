@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Input
 from tensorflow.keras.applications import  MobileNetV2, ResNet50V2, InceptionResNetV2
-from .layers import BatchNormalization, CosLayer, ArcLayer 
+from layers import BatchNormalization, CosLayer, ArcLayer 
 
 
 def _regularizer(weights_decay=5e-4):
@@ -40,18 +40,18 @@ def ArcHead(num_classes, name='ArcHead'):
     """Normalize input and weight before multiplication Head then add margin into logits"""
     def arc_head(x_in):
         x = inputs1 = Input(x_in.shape[1:])
-        x = ArcLayer(num_classes=num_classes)(x)
+        x = CosLayer(num_classes=num_classes)(x)
         return Model((inputs1), x, name=name)((x_in))
     return arc_head
 #### The upper code is useless ################
 
 def CosHead(num_classes, name='ArcHead'):
     """Normalize input and weight before multiplication Head"""
-    def arc_head(x_in):
+    def cos_head(x_in):
         x = inputs1 = Input(x_in.shape[1:])
         x = CosLayer(num_classes=num_classes)(x)
         return Model((inputs1), x, name=name)((x_in))
-    return arc_head
+    return cos_head
 
 
 def NormHead(num_classes, w_decay=5e-4, name='NormHead'):

@@ -84,7 +84,7 @@ def main(cfg):
     max_acc = 0.
     num_batchs =  cfg['sample_num'] // cfg['batch_size'] + 1
     for e in range(cfg['epoch_num']):
-        print("Epoch: {}\n-Train...", e)
+        print("Epoch: {}\n-Train...".format(e))
         backbone.train()
         total_loss = 0.0
         for data in tqdm.tqdm(iter(trainloader)):
@@ -107,7 +107,7 @@ def main(cfg):
             optimizer.step()
         scheduler.step()
         backbone.eval()
-        print("-Validate...")
+        print("-Validate...") 
         with torch.no_grad():
             acc = evaluate_model(backbone, valid_dataset, device=device)
             print("\t--Train Loss: {} ".format(total_loss / num_batchs))

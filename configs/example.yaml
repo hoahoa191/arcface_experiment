@@ -16,17 +16,19 @@ logits_scale: 64.0
 logits_margin: 0.5
 
 #optimizer
+optimizer: SGD
 momentum: 0.9
-base_lr : 0.1
+base_lr : 0.05
 decay   : True
-decay_rate: 0.95
-decay_steps: 1500
+lr_steps: [40000, 80000, 100000, 120000]
+lr_values: [0.01, 0.005, 0.001, 0.0005]
+step_size: 15
 
 #--------------------
 # run params
 init_epoch: 1
 batch_size: 64
-epoch_num: 25
+epoch_num: 30
 step_per_save: 1000
 
 # paths <SHOULD JUST CHANGE TRAIN DATA!>

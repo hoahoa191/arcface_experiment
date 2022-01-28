@@ -1,15 +1,16 @@
 import os
 import tensorflow as tf
+import sys
 import yaml
 import argparse
 from tqdm import tqdm
 
-from modules_keras.preprocess import load_tfrecord_dataset
-from modules_keras.models import getModel
-from modules_keras.losses import *
-from modules_keras.utils import *
-
+from preprocess import load_tfrecord_dataset
+from models import getModel
+from utils import set_memory_growth
+from losses import *
 from tensorflow.keras.callbacks import ModelCheckpoint, TensorBoard, LearningRateScheduler
+
 
 ######################
 #Set GPU
@@ -20,31 +21,22 @@ set_memory_growth()
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--c', type=str, default='./configs/res50.yaml', help='config path')
+    parser.add_argument('--m', type=str, default='custome', help='Training mode : Fit or Custome')
     return parser.parse_args()
-
-#####################
-@tf.function
-def train_step(model, inputs, labels, loss_function, optimizer, **kwargs):
-  with tf.GradientTape() as tape:
-    predictions = model(inputs, training=True)
-    loss = loss_function(labels, predictions) + tf.reduce_sum(model.losses)
-  gradients = tape.gradient(loss, model.trainable_variables)
-  optimizer.apply_gradients(zip(gradients, model.trainable_variables))
-  return loss
 
 ####################
 def main(cofg, mode='custome'):
     steps_per_epoch = cofg['sample_num'] // cofg['batch_size'] + 1
-    save_path = os.path.join(os.getcwd(), "save", cofg['model_name'])
-    log_path = os.path.join(save_path, 'log')
-    checkpoint_prefix = os.path.join(save_path, "ckpt", "w.{epoch:02d}.hdf5")
+    save_path = os.path.join(os.getcwd(), "save", cofg['model_name']).replace("//", "/")
+    log_path = os.path.join(save_path, 'log').replace("//", "/")
+    checkpoint_prefix = os.path.join(save_path, "ckpt","w.{epoch:02d}.hdf5").replace("//", "/")
     if not os.path.exists(save_path):
         os.makedirs(save_path)
         os.makedirs(log_path)
         os.makedirs(checkpoint_prefix)
     #dataset
-    trainloader = load_tfrecord_dataset(cfg['train_data'], cfg['batch_size'],
-                          dtype="train", shuffle=True, buffer_size=1028, transform_img=True)
+    train_dataset = load_tfrecord_dataset(cofg['train_data'], cofg['batch_size'],
+                          dtype="train", shuffle=True, buffer_size=10240, transform_img=True)
     #model
     model = getModel(input_shape=(cofg['image_size'], cofg['image_size'], 3),
                      backbone_type=cofg['backbone'],
@@ -61,12 +53,14 @@ def main(cofg, mode='custome'):
     else:
         print("\t[*] training from scratch.")
         start_epoch = 0
-    scale = int(512.0 / cofg['batch_size'])
-    lr_steps = [ scale * s for s in cofg['lr_steps']]
-    lr_values = [v / scale for v in cofg['lr_values']]
+    #scale = int(256.0 / cofg['batch_size']) #defaul 512
+    #lr_steps = [ scale * s for s in cofg['lr_steps']]
+    #lr_values = [v / scale for v in cofg['lr_values']]
+    lr_steps = cofg['lr_steps']
+    lr_values = cofg['lr_values']
     if cofg['decay']:
         def lr_step_based_decay(epoch):
-            lr = cofg['base_lr'] / scale
+            lr = cofg['base_lr'] #/ scale
             for i, lr_step in enumerate(lr_steps):
                 if epoch >= lr_step // steps_per_epoch:
                     lr = lr_values[i]
@@ -79,13 +73,12 @@ def main(cofg, mode='custome'):
     #get Loss funtion
     LossFunction=None
     if cofg['loss'].lower() == 'cosloss':
-        print("use Cos-Loss")
-        LossFunction = CosLoss(num_classes=config['class_num'], margin=cofg['logits_margin'], logist_scale=cofg['logits_scale'])
+        print("use cosloss")
+        LossFunction = CosLoss(num_classes=config['class_num'])
     elif cofg['loss'].lower() == 'arcloss':
-        print("use Arc-Loss")
-        LossFunction = ArcLoss(num_classes=config['class_num'], margin=cofg['logits_margin'], logist_scale=cofg['logits_scale'])
+        print("use arcloss")
+        LossFunction = ArcLoss(num_classes=config['class_num'])
     else:
-        print("use Softmax")
         LossFunction = SoftmaxLoss()
     if mode != 'fit':
         #graph mode use for debug, trainning maybe faster than fit
@@ -118,7 +111,7 @@ def main(cofg, mode='custome'):
                 metric_loss_train.reset_state()
     else:
         print('fit mode')
-        callbacks = [ModelCheckpoint(filepath=checkpoint_prefix, save_weights_only=True, save_freq='epoch'),
+        callbacks = [ModelCheckpoint(filepath=checkpoint_prefix, save_weights_only=True, save_freq='epoch', monitor="loss"),
                     TensorBoard(log_dir=log_path),
                     LearningRateScheduler(lr_step_based_decay, verbose=1)]
         metrics = ['accuracy']

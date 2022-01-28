@@ -5,10 +5,9 @@ import torch.nn.functional as F
 from torch.nn import Parameter
 import math
 
-EPS=1e-10
 
 class ArcMarginProduct(nn.Module):
-    r"""Implement of large margin arc distance: :
+    """Implement of large margin arc distance: :
         Args:
             in_features: size of each input sample
             out_features: size of each output sample
@@ -22,9 +21,9 @@ class ArcMarginProduct(nn.Module):
         self.out_features = out_features
         self.s = s
         self.m = m
-        self.weight = Parameter(torch.FloatTensor(out_features, in_features))
+        self.weight = Parameter(torch.FloatTensor(in_features, out_features))
         nn.init.xavier_uniform_(self.weight) #init weight
-
+        self.eps = 1e-10
         self.easy_margin = easy_margin
         self.cos_m = math.cos(m)
         self.sin_m = math.sin(m)
@@ -33,26 +32,27 @@ class ArcMarginProduct(nn.Module):
 
     def forward(self, input, label):
         # --------------------------- cos(theta) & phi(theta) ---------------------------
-        cos_t = F.linear(F.normalize(input), F.normalize(self.weight, dim=0)).clamp(-1 + EPS, 1 - EPS)
+        norm_input = F.normalize(input, dim=1)
+        norm_weight = F.normalize(self.weight, dim=0)
+
+        cos_t = norm_input.matmul(norm_weight).clamp(-1 + self.eps, 1 - self.eps)
         sin_t = torch.sqrt(1.0 - torch.pow(cos_t, 2))
-        phi = cos_t * self.cos_m - sin_t * self.sin_m
+        cos_phi = cos_t * self.cos_m - sin_t * self.sin_m
         if self.easy_margin:
-            phi = torch.where(cos_t > 0, phi, cos_t)
+            cos_phi = torch.where(cos_t > 0, cos_phi, cos_t)
         else:
-            phi = torch.where(cos_t > self.th, phi, cos_t - self.mm)
+            cos_phi = torch.where(cos_t > self.th, cos_phi, cos_t - self.mm)
         # --------------------------- convert label to one-hot ---------------------------
         one_hot = F.one_hot(label, num_classes=self.out_features)
         # -------------torch.where(out_i = {x_i if condition_i else y_i) -------------
-        #output = (one_hot * phi) + ((1.0 - one_hot) * cos_t) 
-        output = torch.where(one_hot==1, phi, cos_t) 
+        output = torch.where(one_hot == 1, cos_phi, cos_t)
         output *= self.s
-        # print(output)
 
         return output
 
 
 class CosMarginProduct(nn.Module):
-    r"""Implement of large margin cosine distance: :
+    """Implement of large margin cosine distance: :
     Args:
         in_features: size of each input sample
         out_features: size of each output sample
@@ -72,8 +72,8 @@ class CosMarginProduct(nn.Module):
 
     def forward(self, input, label):
         # --------------------------- cos(theta) & phi(theta) ---------------------------
-        cos_t = F.linear(F.normalize(input), F.normalize(self.weight, dim=0))
-        phi = cos_t - self.m
+        cos_t = F.linear(F.normalize(input), F.normalize(self.weight, dim=1))
+        phi = cos_t - math.cos(self.m)
         # --------------------------- convert label to one-hot ---------------------------
         one_hot = F.one_hot(label, num_classes=self.out_features)
         # -------------torch.where(out_i = {x_i if condition_i else y_i) -------------
