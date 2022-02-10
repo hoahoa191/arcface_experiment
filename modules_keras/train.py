@@ -30,6 +30,7 @@ def main(cofg, mode='custome'):
     save_path = os.path.join(os.getcwd(), "save", cofg['model_name']).replace("//", "/")
     log_path = os.path.join(save_path, 'log').replace("//", "/")
     checkpoint_prefix = os.path.join(save_path, "ckpt","w.{epoch:02d}.hdf5").replace("//", "/")
+    print(save_path, log_path, checkpoint_prefix)
     if not os.path.exists(save_path):
         os.makedirs(save_path)
         os.makedirs(log_path)

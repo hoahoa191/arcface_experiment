@@ -26,6 +26,7 @@ def main(cfg, save_folder, format_name, start_e=1):
     best_e = None
     for epoch in range(start_e, cfg['epoch_num']):
         wpath = os.path.join(ckpt_path, format_name.format(name=cfg['model_name'], e=epoch))
+        print("src: ", wpath, "\ntesting...")
         if not os.path.exists(wpath): continue
         #getmodel and load weight
         model = getModel(input_shape=(cfg['image_size'], cfg['image_size'], 3),

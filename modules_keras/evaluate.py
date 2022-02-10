@@ -64,9 +64,9 @@ def get_featurs(model, dataset, *kwargs):
     tpr, fpr, acc, best = calculate_roc(thresholds, dists, actual_issame)
     return np.mean(acc)
 
-def evaluate_model(model, dataset, device=None):
+def evaluate_model(model, dataset):
     s = time.time()
-    acc= get_featurs(model, dataset, device=device)
+    acc= get_featurs(model, dataset)
     t = time.time() - s
     print('\t--total time is {}'.format(t))
     print('\t--lfw face verification accuracy: ', acc)

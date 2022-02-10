@@ -1,38 +1,40 @@
 # model params
-model_name : softmax
+model_name : sm_tf
 backbone: ResNet50
 headtype: NormHead
 loss    : softmax
 
+#-------------------
+##input config
 image_size: 112
 embd_size: 512
 class_num: 5000
 sample_num: 339709
-
-#-------------------
-# hyper params
+#
+##-------------------
+## hyper params
 weight_decay: !!float 5e-4
 logits_scale: 64.0
 logits_margin: 0.5
 
+##-------------------
 #optimizer
 optimizer: SGD
 momentum: 0.9
 base_lr : 0.05
 decay   : True
-lr_steps: [40000, 80000, 100000, 120000]
-lr_values: [0.01, 0.005, 0.001, 0.0005]
-step_size: 15
+lr_steps: [80000, 160000, 240000, 320000]
+lr_values: [0.01, 0.005, 0.0005, 0.0001]
+step_size: 50
 
-#--------------------
-# run params
-init_epoch: 1
+##--------------------
+## run params
 batch_size: 64
-epoch_num: 30
-step_per_save: 1000
+init_epoch: 0
+epoch_num: 100
 
 # paths <SHOULD JUST CHANGE TRAIN DATA!>
 
 train_data: "C:/Users/84982/Documents/GitHub/arcface_experiment/data/5kdataset.tfrecord"
-val_data: {'lfw': 'C:/Users/84982/Documents/GitHub/arcface_experiment/data/test_data'}
+val_data: "C:/Users/84982/Documents/GitHub/arcface_experiment/data/lfwdata.tfrecord"
 save_dir : 'C:/Users/84982/Documents/GitHub/arcface_experiment/save'
