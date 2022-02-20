@@ -3,7 +3,7 @@ import tensorflow as tf
 
 def _parse_tfrecord(dtype="train", transform_img=True):
     def parse_tfrecord(tfrecord):
-        if dtype == "train":
+        if dtype != "test":
             features = {'image/source_id': tf.io.FixedLenFeature([], tf.int64),
                         'image/filename': tf.io.FixedLenFeature([], tf.string),
                         'image/encoded': tf.io.FixedLenFeature([], tf.string)}

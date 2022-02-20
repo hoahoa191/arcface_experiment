@@ -33,7 +33,7 @@ def ArcLoss(margin=0.5, logits_scale=64, num_classes=2):
     
     criterion = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
     def arcloss(y_true, y_pred):
-        cos_t = tf.clip_by_value(y_pred, clip_value_min=-1. + eps, clip_value_max=1. - eps)
+        cos_t = tf.clip_by_value(y_pred, clip_value_min=-1.+eps, clip_value_max=1.-eps)
         sin_t = tf.sqrt(1. - cos_t ** 2, name='sin_t')
 
         cos_mt = tf.subtract(cos_t * cos_m, sin_t * sin_m, name='cos_mt')

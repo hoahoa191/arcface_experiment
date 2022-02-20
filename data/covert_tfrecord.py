@@ -58,8 +58,8 @@ def main(dataset_path, output_path):
             samples.append((img_path, id_name, filename))
             num_sample += 1
 
-        if i + 1 ==5000 :
-            break 
+#        if i + 1 ==5000 :
+#            break 
     print("Number of sample : {} imgs - {} ids".format(num_sample, 5000))
 
     random.shuffle(samples)

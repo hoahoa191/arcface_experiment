@@ -19,8 +19,8 @@ def load_model(model, weight_file):
 
 def main(cfg, save_folder, format_name, start_e=1):
     #getdata
-    valid_dataset = load_tfrecord_dataset(cfg['val_data'], cfg['batch_size'],
-                          dtype="valid", shuffle=True, buffer_size=1028, transform_img=False)
+    valid_dataset = load_tfrecord_dataset(cfg['test_data'], cfg['batch_size'],
+                          dtype="test", shuffle=True, buffer_size=1028, transform_img=False)
     ckpt_path = os.path.join(save_folder, "{}/ckpt/".format(cfg['model_name']))
     max_acc = 0.
     best_e = None

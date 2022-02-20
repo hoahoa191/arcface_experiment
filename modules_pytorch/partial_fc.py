@@ -35,7 +35,7 @@ class ArcMarginProduct(nn.Module):
         norm_input = F.normalize(input, dim=1)
         norm_weight = F.normalize(self.weight, dim=0)
 
-        cos_t = norm_input.matmul(norm_weight).clamp(-1 + self.eps, 1 - self.eps)
+        cos_t = torch.mm(norm_input,norm_weight).clamp(-1 + self.eps, 1 - self.eps)
         sin_t = torch.sqrt(1.0 - torch.pow(cos_t, 2))
         cos_phi = cos_t * self.cos_m - sin_t * self.sin_m
         if self.easy_margin:

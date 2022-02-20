@@ -26,7 +26,7 @@ def get_args():
 
 ####################
 def main(cofg, mode='custome'):
-    steps_per_epoch = cofg['sample_num'] // cofg['batch_size'] + 1
+    steps_per_epoch = cofg['step_per_epoch']
     save_path = os.path.join(os.getcwd(), "save", cofg['model_name']).replace("//", "/")
     log_path = os.path.join(save_path, 'log').replace("//", "/")
     checkpoint_prefix = os.path.join(save_path, "ckpt","w.{epoch:02d}.hdf5").replace("//", "/")
@@ -38,6 +38,8 @@ def main(cofg, mode='custome'):
     #dataset
     train_dataset = load_tfrecord_dataset(cofg['train_data'], cofg['batch_size'],
                           dtype="train", shuffle=True, buffer_size=10240, transform_img=True)
+    valid_dataset =   load_tfrecord_dataset(cofg['valid_data'], cofg['batch_size'],
+                          dtype="valid", shuffle=True, buffer_size=10240, transform_img=True)
     #model
     model = getModel(input_shape=(cofg['image_size'], cofg['image_size'], 3),
                      backbone_type=cofg['backbone'],
@@ -118,7 +120,8 @@ def main(cofg, mode='custome'):
         metrics = ['accuracy']
         model.compile(optimizer=optimizer, loss=LossFunction, metrics=metrics)
 
-        model.fit(train_dataset, epochs=cofg['epoch_num'],
+        model.fit(train_dataset, validation_data=valid_dataset, 
+                epochs=cofg['epoch_num'],
                 initial_epoch=start_epoch,
                 steps_per_epoch=steps_per_epoch,
                 callbacks=callbacks)
