@@ -77,7 +77,7 @@ def main(cfg, img_file, n_workers=2):
         optimizer = SGD([{'params': backbone.parameters()}, {'params': partial_fc.parameters()}],
                                      lr=cfg['base_lr'], weight_decay=cfg['weight_decay'])
     #LossFunction+scheduerLR
-    if cfg.loss == 'focal_loss':
+    if cfg['criterion'] == 'focal_loss':
         criterion = FocalLoss(gamma=2)
     else:
         criterion = torch.nn.CrossEntropyLoss()
