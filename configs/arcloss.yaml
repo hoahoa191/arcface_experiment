@@ -1,8 +1,8 @@
 # model params
-model_name : softmax
-backbone: Resnet18
-headtype: NormHead
-loss    : softmax
+model_name : arcloss
+backbone: resnet18
+headtype: CosHead
+loss    : arcloss
 criterion: focal_loss
 #-------------------
 ##input config
@@ -19,18 +19,18 @@ logits_margin: 0.5
 
 ##-------------------
 #optimizer
-optimizer: Adam
+optimizer: SGD
 momentum: 0.9
-base_lr : 0.01
+base_lr : 0.2
 decay   : True
-lr_steps: [3000, 5000, 7000]
-lr_values: [0.0005, 0.0003, 0.0001]
+lr_steps: [0.2, 0.35, 1, 2] #epoch
+lr_values: [0.01, 0.001, 0.0005, 0.0001]
 
 ##--------------------
 ## run params
-batch_size: 16
+batch_size: 16 
 init_epoch: 0
-epoch_num: 100
+epoch_num: 200
 step_per_epoch: 10000
 step_per_save: epoch
 # paths <SHOULD JUST CHANGE TRAIN DATA!>

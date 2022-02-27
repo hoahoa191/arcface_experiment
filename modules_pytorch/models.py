@@ -110,14 +110,20 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-    
+        
+        self.bn4 = nn.BatchNorm2d(512)
+        self.dropout =  nn.Dropout(p=0.5)
         self.fc5 = nn.Linear(512 * block.expansion, output_size)
-
+        self.bn5 = nn.BatchNorm1d(output_size)
+        
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            elif isinstance(m, nn.BatchNorm2d):
+            elif isinstance(m, nn.BatchNorm2d) or isinstance(m, nn.BatchNorm1d):
                 nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.xavier_normal_(m.weight)
                 nn.init.constant_(m.bias, 0)
 
     def _make_layer(self, block, planes, blocks, stride=1):
@@ -149,9 +155,13 @@ class ResNet(nn.Module):
         x = self.layer4(x)
         x = nn.AvgPool2d(kernel_size=x.size()[2:])(x)
         x = self.avgpool(x)
+        
+        x = self.bn4(x)
+        x = self.dropout(x)
         x = torch.flatten(x, 1)
         x = self.fc5(x)
-
+        x = self.bn5(x)
+        
         return x
 
 

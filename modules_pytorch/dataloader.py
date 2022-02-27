@@ -22,7 +22,7 @@ class Dataset(data.Dataset):
         self.imgs = np.random.permutation(imgs)
         self.size        = len(imgs)
 
-        normalize = T.Normalize(mean=[0.5], std=[0.5])
+        normalize = T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
 
         if self.is_training:
             self.transforms = T.Compose([
@@ -54,7 +54,7 @@ class Dataset(data.Dataset):
     def __len__(self):
         return self.size
 
-def get_DataLoader(dataset, batch_size, shuffle=True,num_workers=1):
+def get_DataLoader(dataset, batch_size, shuffle=True,num_workers=4):
     return data.DataLoader(dataset, batch_size=batch_size,
                         shuffle=shuffle,
                         num_workers=num_workers)

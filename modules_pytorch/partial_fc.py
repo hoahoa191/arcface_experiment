@@ -15,7 +15,7 @@ class ArcMarginProduct(nn.Module):
             m: margin
             cos(theta + m)
         """
-    def __init__(self, in_features, out_features, s=30.0, m=0.50, easy_margin=False):
+    def __init__(self, in_features, out_features, s=30.0, m=0.50):
         super(ArcMarginProduct, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -23,8 +23,7 @@ class ArcMarginProduct(nn.Module):
         self.m = m
         self.weight = Parameter(torch.FloatTensor(in_features, out_features))
         nn.init.xavier_uniform_(self.weight) #init weight
-        self.eps = 1e-10
-        self.easy_margin = easy_margin
+        self.eps = 1e-7
         self.cos_m = math.cos(m)
         self.sin_m = math.sin(m)
         self.th = math.cos(math.pi - m) #threshold
@@ -35,15 +34,13 @@ class ArcMarginProduct(nn.Module):
         norm_input = F.normalize(input, dim=1)
         norm_weight = F.normalize(self.weight, dim=0)
 
-        cos_t = torch.mm(norm_input,norm_weight).clamp(-1 + self.eps, 1 - self.eps)
+        cos_t = torch.mm(norm_input,norm_weight).clamp(-1. + self.eps, 1. - self.eps)
         sin_t = torch.sqrt(1.0 - torch.pow(cos_t, 2))
         cos_phi = cos_t * self.cos_m - sin_t * self.sin_m
-        if self.easy_margin:
-            cos_phi = torch.where(cos_t > 0, cos_phi, cos_t)
-        else:
-            cos_phi = torch.where(cos_t > self.th, cos_phi, cos_t - self.mm)
+        cos_phi = torch.where(cos_t > self.th, cos_phi, cos_t - self.mm)
         # --------------------------- convert label to one-hot ---------------------------
-        one_hot = F.one_hot(label, num_classes=self.out_features)
+        one_hot = torch.zeros_like(cos_phi)
+        one_hot.scatter_(1, label.view(-1, 1), 1)
         # -------------torch.where(out_i = {x_i if condition_i else y_i) -------------
         output = torch.where(one_hot == 1, cos_phi, cos_t)
         output *= self.s
@@ -73,7 +70,7 @@ class CosMarginProduct(nn.Module):
     def forward(self, input, label):
         # --------------------------- cos(theta) & phi(theta) ---------------------------
         cos_t = F.linear(F.normalize(input), F.normalize(self.weight, dim=1))
-        phi = cos_t - math.cos(self.m)
+        phi = cos_t - self.m
         # --------------------------- convert label to one-hot ---------------------------
         one_hot = F.one_hot(label, num_classes=self.out_features)
         # -------------torch.where(out_i = {x_i if condition_i else y_i) -------------

@@ -50,8 +50,8 @@ def get_featurs(model, dataset, device=torch.device('cpu')):
         embds_1 = model(img1)
         embds_2 = model(img2)
 
-        embds_1 = embds_1.data.numpy()
-        embds_2 = embds_2.data.numpy()
+        embds_1 = embds_1.cpu().data.numpy()
+        embds_2 = embds_2.cpu().data.numpy()
         
         embds_1 = l2_norm(embds_1)
         embds_2 = l2_norm(embds_2)
@@ -81,6 +81,6 @@ def evaluate_model(model, dataset, device):
     s = time.time()
     acc= get_featurs(model, dataset, device=device)
     t = time.time() - s
-    print('\t--total time is {}'.format(t))
-    print('\t--lfw face verification accuracy: ', acc)
+    print('\t--total time is {:.3f}'.format(t))
+    print('\t--lfw face verification accuracy: {:.5f}'.format(acc))
     return acc

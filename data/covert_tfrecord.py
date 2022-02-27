@@ -60,7 +60,7 @@ def main(dataset_path, output_path):
 
 #        if i + 1 ==5000 :
 #            break 
-    print("Number of sample : {} imgs - {} ids".format(num_sample, 5000))
+    print("Number of sample : {} imgs - {} ids".format(num_sample, ids))
 
     random.shuffle(samples)
 

@@ -25,76 +25,85 @@ def get_args():
     return parser.parse_args()
 
 ####################
-def main(cofg, mode='custome'):
-    steps_per_epoch = cofg['step_per_epoch']
-    save_path = os.path.join(os.getcwd(), "save", cofg['model_name']).replace("//", "/")
+def main(cfg, mode='custome'):
+    steps_per_epoch = cfg['sample_num'] // cfg['batch_size'] + 1
+    save_path = os.path.join(os.getcwd(), "save", cfg['model_name']).replace("//", "/")
     log_path = os.path.join(save_path, 'log').replace("//", "/")
-    checkpoint_prefix = os.path.join(save_path, "ckpt","w.{epoch:02d}.hdf5").replace("//", "/")
-    print(save_path, log_path, checkpoint_prefix)
+    checkpoint_prefix = os.path.join(save_path, "ckpt").replace("//", "/")
     if not os.path.exists(save_path):
-        os.makedirs(save_path)
         os.makedirs(log_path)
         os.makedirs(checkpoint_prefix)
     #dataset
-    train_dataset = load_tfrecord_dataset(cofg['train_data'], cofg['batch_size'],
+    train_dataset = load_tfrecord_dataset(cfg['train_data'], cfg['batch_size'],
                           dtype="train", shuffle=True, buffer_size=10240, transform_img=True)
-    valid_dataset =   load_tfrecord_dataset(cofg['valid_data'], cofg['batch_size'],
+    try:
+        valid_dataset = load_tfrecord_dataset(cfg['valid_data'], cfg['batch_size'],
                           dtype="valid", shuffle=True, buffer_size=10240, transform_img=True)
+    except:
+        valid_dataset = None
+        
     #model
-    model = getModel(input_shape=(cofg['image_size'], cofg['image_size'], 3),
-                     backbone_type=cofg['backbone'],
-                     num_classes=cofg['class_num'],
-                     head_type=cofg['headtype'],
-                     embd_shape=cofg['embd_size'],
-                     w_decay=cofg['weight_decay'],
-                     training=True, name=cofg['model_name'])
+    model = getModel(input_shape=(cfg['image_size'], cfg['image_size'], 3),
+                     backbone_type=cfg['backbone'],
+                     num_classes=cfg['class_num'],
+                     head_type=cfg['headtype'],
+                     embd_shape=cfg['embd_size'],
+                     w_decay=cfg['weight_decay'],
+                     training=True, name=cfg['model_name'])
     #restore
-    ckpt_path = tf.train.latest_checkpoint(save_path)
-    if ckpt_path is not None:
-        tf.train.Checkpoint(model).restore(ckpt_path).expect_partial()
-        start_epoch = cofg['init_epoch']
+    ckpt_paths = [f.path for f in os.scandir(checkpoint_prefix)]
+    if len(ckpt_paths) > 0:
+        model.load_weights(ckpt_paths[-1], by_name=True, skip_mismatch=True)
+        start_epoch = cfg['init_epoch']
     else:
         print("\t[*] training from scratch.")
         start_epoch = 0
-    #scale = int(256.0 / cofg['batch_size']) #defaul 512
-    #lr_steps = [ scale * s for s in cofg['lr_steps']]
-    #lr_values = [v / scale for v in cofg['lr_values']]
-    lr_steps = cofg['lr_steps']
-    lr_values = cofg['lr_values']
-    if cofg['decay']:
+        
+    scale = int(512 / cfg['batch_size'])
+    lr_steps = [ scale * s for s in cfg['lr_steps']]
+    #lr_values = [v / scale for v in cfg['lr_values']]
+    lr_values = cfg['lr_values']
+    print("lr_steps: ", lr_steps, "\tlr_values: ", lr_values)
+    if cfg['decay']:
         def lr_step_based_decay(epoch):
-            lr = cofg['base_lr'] #/ scale
+            lr = cfg['base_lr'] #/ scale
             for i, lr_step in enumerate(lr_steps):
-                if epoch >= lr_step // steps_per_epoch:
+                if epoch >= lr_step:
                     lr = lr_values[i]
             return lr
     else :
         def lr_step_based_decay(epoch):
-            return cofg['base_lr']
-    optimizer = tf.keras.optimizers.SGD(momentum=cofg['momentum'], clipnorm=1.0)
-
+            return cfg['base_lr']
+    
+    if cfg['optimizer'].lower() == "sgd":
+        optimizer = tf.keras.optimizers.SGD(momentum=cfg['momentum'], nesterov=True)
+    else : optimizer = tf.keras.optimizers.Adam()
+    
     #get Loss funtion
     LossFunction=None
-    if cofg['loss'].lower() == 'cosloss':
+    if cfg['loss'].lower() == 'cosloss':
         print("use cosloss")
         LossFunction = CosLoss(num_classes=config['class_num'])
-    elif cofg['loss'].lower() == 'arcloss':
+    elif cfg['loss'].lower() == 'arcloss':
         print("use arcloss")
-        LossFunction = ArcLoss(num_classes=config['class_num'])
+        LossFunction = ArcLoss(num_classes=config['class_num'], margin=cfg["logits_margin"], logits_scale=cfg["logits_scale"])
     else:
         LossFunction = SoftmaxLoss()
+        print("use softmax")
+        
     if mode != 'fit':
         #graph mode use for debug, trainning maybe faster than fit
         print('custom mode')
         #metric
         metric_loss_train = tf.keras.metrics.Mean(name='train_loss')
         metric_loss_val   = tf.keras.metrics.Mean(name='train_val')
-        metric_acc  = tf.keras.metrics.SparseCategoricalAccuracy()
+
         #checkpoint
         checkpoint = tf.train.Checkpoint(optimizer=optimizer, model=model)
         summary_writer = tf.summary.create_file_writer(log_path)
         train_dataset = iter(train_dataset)
-        for step in tqdm(range((start_epoch - 1) * steps_per_epoch, cofg['epoch_num'] * steps_per_epoch)):
+        
+        for step in tqdm(range((start_epoch - 1) * steps_per_epoch, cfg['epoch_num'] * steps_per_epoch)):
             inputs, labels = next(train_dataset)
             loss = train_step(model=model,
                         inputs=inputs, labels=labels,
@@ -114,14 +123,14 @@ def main(cofg, mode='custome'):
                 metric_loss_train.reset_state()
     else:
         print('fit mode')
-        callbacks = [ModelCheckpoint(filepath=checkpoint_prefix, save_weights_only=True, save_freq='epoch', monitor="loss"),
+        callbacks = [ModelCheckpoint(filepath=os.path.join(checkpoint_prefix, "w.{epoch:02d}-{loss:.2f}.hdf5"), save_weights_only=True, save_freq=cfg['step_per_save'], monitor="loss"),
                     TensorBoard(log_dir=log_path),
                     LearningRateScheduler(lr_step_based_decay, verbose=1)]
         metrics = ['accuracy']
         model.compile(optimizer=optimizer, loss=LossFunction, metrics=metrics)
 
-        model.fit(train_dataset, validation_data=valid_dataset, 
-                epochs=cofg['epoch_num'],
+        model.fit(train_dataset, #validation_data=valid_dataset, 
+                epochs=cfg['epoch_num'],
                 initial_epoch=start_epoch,
                 steps_per_epoch=steps_per_epoch,
                 callbacks=callbacks)
