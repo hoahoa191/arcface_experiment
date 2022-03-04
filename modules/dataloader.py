@@ -10,7 +10,7 @@ import sys
 
 
 class Dataset(data.Dataset):
-    "Load data from tfrecord"
+
     def __init__(self, data_list_file, is_training=True, input_shape=(1, 112, 112)):
         self.is_training = is_training
         self.input_shape = input_shape
@@ -50,6 +50,47 @@ class Dataset(data.Dataset):
         #y
         label = np.int32(sample.split("/")[-2])
         return data.float(), label
+
+    def __len__(self):
+        return self.size
+
+class LFWdataset(data.Dataset):
+
+    def __init__(self, data_list_file,  path, input_shape=(1, 112, 112)):
+        self.input_shape = input_shape
+        
+        with open(os.path.join(data_list_file), 'r') as fd:
+            imgs = fd.readlines()
+        
+        imgs = [line.split() for line in imgs]
+        imgs = [[os.path.join(path, img[0].strip()), 
+                os.path.join(path, img[1].strip()),
+                int(img[2])] for img in imgs]
+                
+        self.imgs = np.random.permutation(imgs)
+        self.size        = len(imgs)
+
+        normalize = T.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+        self.transforms = T.Compose([
+                T.CenterCrop(self.input_shape[1:]),
+                T.ToTensor(),
+                normalize
+            ])
+
+    def __getitem__(self, index):
+        sample = self.imgs[index]
+
+        #x1
+        data1 = Image.open(sample[0])
+        data1 = data1.convert('RGB') # convert image to monochrome('L') or RGB
+        data1 = self.transforms(data1)
+        #x2
+        data2 = Image.open(sample[1])
+        data2 = data2.convert('RGB') # convert image to monochrome('L') or RGB
+        data2 = self.transforms(data2)
+        #y
+        label = np.int32(sample[2])
+        return data1.float(), data2.float(), label
 
     def __len__(self):
         return self.size

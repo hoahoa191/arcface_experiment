@@ -43,9 +43,9 @@ def calculate_roc(thresholds, dists, actual_issame):
 def get_featurs(model, dataset, device=torch.device('cpu')):
     result = {'issame': [], 'prob':[]}
     for img1, img2, is_same in tqdm.tqdm(dataset):
-        is_same = is_same.numpy() == 1
-        img1 = torch.from_numpy(img1.numpy()).permute(0, 3, 1, 2).to(device)
-        img2 = torch.from_numpy(img2.numpy()).permute(0, 3, 1, 2).to(device)
+        is_same = is_same.cpu().data.numpy() == 1
+        img1 = img1.to(device)
+        img2 = img2.to(device)
         
         embds_1 = model(img1)
         embds_2 = model(img2)

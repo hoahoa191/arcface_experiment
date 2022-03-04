@@ -1,41 +1,38 @@
 # model params
 model_name : arcloss
-backbone: resnet18
-headtype: CosHead
+backbone: resnet50
 loss    : arcloss
-criterion: focal_loss
+criterion: crossentropy
 #-------------------
 ##input config
 image_size: 112
-embd_size: 128
+embd_size: 512
 class_num: 500
 sample_num: 25000
 #
 ##-------------------
 ## hyper params
 weight_decay: !!float 5e-4
-logits_scale: 64
+logits_scale: 30
 logits_margin: 0.5
 
 ##-------------------
 #optimizer
 optimizer: SGD
 momentum: 0.9
-base_lr : 0.2
+base_lr : 0.1
 decay   : True
-lr_steps: [0.2, 0.35, 1, 2] #epoch
-lr_values: [0.01, 0.001, 0.0005, 0.0001]
+lr_steps: [0.2, 0.5, 0.75] #epoch
 
 ##--------------------
 ## run params
-batch_size: 16 
+batch_size: 16
 init_epoch: 0
-epoch_num: 200
-step_per_epoch: 10000
+epoch_num: 50
 step_per_save: epoch
 # paths <SHOULD JUST CHANGE TRAIN DATA!>
 
-train_data: "C:/Users/84982/Documents/GitHub/arcface_experiment/data/trainDS.tfrecord"
+train_data: "./data/_small_ds.txt"
 valid_data: "C:/Users/84982/Documents/GitHub/arcface_experiment/data/validDS.tfrecord"
-test_data: "C:/Users/84982/Documents/GitHub/arcface_experiment/data/lfwdata.tfrecord"
+test_data: "./data/lfw"
 save_dir : 'C:/Users/84982/Documents/GitHub/arcface_experiment/save'

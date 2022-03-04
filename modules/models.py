@@ -111,7 +111,7 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         
-        self.bn4 = nn.BatchNorm2d(512)
+        self.bn4 = nn.BatchNorm2d(512 * block.expansion)
         self.dropout =  nn.Dropout(p=0.5)
         self.fc5 = nn.Linear(512 * block.expansion, output_size)
         self.bn5 = nn.BatchNorm1d(output_size)
@@ -157,8 +157,8 @@ class ResNet(nn.Module):
         x = self.avgpool(x)
         
         x = self.bn4(x)
-        x = self.dropout(x)
         x = torch.flatten(x, 1)
+        x = self.dropout(x)
         x = self.fc5(x)
         x = self.bn5(x)
         
