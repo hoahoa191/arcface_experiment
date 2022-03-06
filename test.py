@@ -1,9 +1,9 @@
 import yaml
 import os
 import numpy as np
-from evaluate import *
-from models import get_model
-from tfrecord_load import  load_tfrecord_dataset
+from modules.evaluate import *
+from modules.models import get_model
+from modules.dataloader import *
 import torch
 
 import argparse
@@ -11,38 +11,44 @@ import argparse
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--c', type=str, default='./configs/res50.yaml', help='config path')
-    parser.add_argument('--sf', type=str, default='./save', help='save folder path')
-    parser.add_argument('--fn', type=str, default='{name}_{e}.pth', help='format name of weight file')
+    parser.add_argument('--s', type=str, default='./save', help='save folder path')
+    parser.add_argument('--t', type=str,  help='lfw folder contains pair file')
     parser.add_argument('--e', type=int, default=1, help='epoch start')
     return parser.parse_args()
 
 
-def main(cfg, save_folder, format_name, start_e=1):
+def main(cfg, save_folder, test_file, start_e=1, n_workers=2):
     best_e = None
+    best_t = None
     max_acc = 0.0
     #getdata
-    valid_dataset = load_tfrecord_dataset(cfg['val_data'], cfg['batch_size'],
-                          dtype="valid", shuffle=True, buffer_size=1028, transform_img=False)
+    test_dataset = LFWdataset(data_list_file=os.path.join(test_file, "lfw_pair.txt").replace("\\", "/"),
+                                path=test_file)
+    testloader = get_DataLoader(test_dataset,
+                                batch_size=cfg['batch_size'],
+                                shuffle=True,
+                                num_workers=n_workers)
     #getmodel and load weight
 
     ckpt_path = os.path.join(save_folder, "{}/ckpt/".format(cfg['model_name']))
-    for epoch in range(start_e, cfg['epoch_num']):
-        wpath = os.path.join(ckpt_path, format_name.format(name=cfg['model_name'], e=epoch))
-        if not os.path.exists(wpath): continue
-        print("src: {}\n Evaluate...".format(wpath))
+    wpaths = [f.path for f in os.scandir(ckpt_path) if f.is_file()]
+    for path in wpaths[start_e:] :
+        print("src: {}\n Evaluate...".format(path))
         model = get_model(cfg)
-        load_model(model,wpath)
+        load_model(model, path)
         #valid
         model.eval()
         with torch.no_grad():
-            acc = evaluate_model(model, valid_dataset)
+            _, acc, t = get_featurs(model, testloader)
+            acc = np.max(acc)
             if acc > max_acc:
-                best_e = epoch
+                best_t = t
+                best_e = path
                 max_acc = acc
-    print("best model {} - best acc: {}".format(best_e, max_acc))
+    print("best model {} - best acc: {} - threshold: {}".format(best_e, max_acc, best_t))
 
 if __name__ == '__main__':
     args = get_args()
     with open(args.c, 'r') as file:
         config = yaml.load(file, Loader=yaml.Loader)
-    main(config, save_folder=args.sf, format_name=args.fn, start_e=args.e)
+    main(config, save_folder=args.s, test_file=args.t, start_e=args.e)

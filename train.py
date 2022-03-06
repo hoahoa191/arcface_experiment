@@ -3,7 +3,7 @@ import argparse
 import torch
 import yaml
 import tqdm
-
+import time
 from torch.nn import DataParallel
 from torch.optim import SGD, Adam
 from torch.optim.lr_scheduler import StepLR, MultiStepLR, CosineAnnealingLR
@@ -11,7 +11,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from modules.models import get_model
 from modules.dataloader import get_DataLoader, Dataset, LFWdataset
-from modules.partial_fc import CosMarginProduct, ArcMarginProduct, NormalFCLayer, L_ArcMarginProduct
+from modules.partial_fc import CosMarginProduct, ArcMarginProduct, NormalFCLayer, AirMarginProduct
 from modules.evaluate import evaluate_model
 from modules.focal_loss import *
 
@@ -65,15 +65,16 @@ def main(cfg, img_file, test_file, n_workers=2):
         partial_fc = ArcMarginProduct(in_features=cfg['embd_size'],
                                 out_features=cfg['class_num'],
                                 s=cfg['logits_scale'], m=cfg['logits_margin'])
-    elif cfg['loss'].lower() == 'l-arcloss':
+    elif cfg['loss'].lower() == 'airloss':
         print("use L-ArcLoss")
-        partial_fc = L_ArcMarginProduct(in_features=cfg['embd_size'],
+        partial_fc = AirMarginProduct(in_features=cfg['embd_size'],
                                 out_features=cfg['class_num'],
                                 s=cfg['logits_scale'], m=cfg['logits_margin'])
     else:
         print("No Additative Margin")
         partial_fc = NormalFCLayer(in_features=cfg['embd_size'],
                                 out_features=cfg['class_num'])
+    
     #data parapell
     backbone = DataParallel(backbone.to(device))
     partial_fc = DataParallel(partial_fc.to(device))
@@ -101,6 +102,7 @@ def main(cfg, img_file, test_file, n_workers=2):
     max_acc = 0.
     writer = SummaryWriter(log_path)
     for e in range(1,cfg['epoch_num']+1):
+        s = time.time()
         print("Epoch: {}/{} \n-LR: {:.6f} \n-Train...".format(e,cfg['epoch_num'], scheduler.get_last_lr()[0]))
         backbone.train()
         total_loss = 0.0
@@ -146,7 +148,10 @@ def main(cfg, img_file, test_file, n_workers=2):
                 save_model(backbone,ckpt_path, cfg['model_name'], e)
             writer.add_scalar('verification accuracy',acc, e * num_batchs)
             writer.add_scalar('training accuracy', num_correct / cfg['sample_num'], e * num_batchs)
+            
+            print('\t--lfw face verification accuracy: {:.5f}'.format(acc))
             print("\t--Train Loss: {:.5f} \n\t--Train accuracy: {:.5f}".format(total_loss / num_batchs, num_correct / cfg['sample_num']))
+            print('\t--total time is {:.3f}'.format(time.time()-s))
     writer.close()
 
 

@@ -1,7 +1,7 @@
 # model params
-model_name : softmax
+model_name : airloss
 backbone: resnet50
-loss    : softmax
+loss    : airloss
 criterion: crossentropy
 #-------------------
 ##input config
@@ -13,21 +13,21 @@ sample_num: 25000
 ##-------------------
 ## hyper params
 weight_decay: !!float 5e-4
-logits_scale: 64
-logits_margin: 0.5
+logits_scale: 10
+logits_margin: 0.4
 
 ##-------------------
 #optimizer
 optimizer: SGD
 momentum: 0.9
 base_lr : 0.1
-lr_steps: [0.5, 0.75]
+lr_steps: [0.5, 0.75] #epoch
 
 ##--------------------
 ## run params
 batch_size: 16
 init_epoch: 0
-epoch_num: 30
+epoch_num: 35
 step_per_save: epoch
 # paths <SHOULD JUST CHANGE TRAIN DATA!>
 

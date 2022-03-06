@@ -13,26 +13,25 @@ sample_num: 25000
 ##-------------------
 ## hyper params
 weight_decay: !!float 5e-4
-logits_scale: 30
+logits_scale: 10
 logits_margin: 0.5
 
 ##-------------------
 #optimizer
-optimizer: SGD
+optimizer: Adam
 momentum: 0.9
-base_lr : 0.1
-decay   : True
-lr_steps: [0.2, 0.5, 0.75] #epoch
+base_lr : 0.001
+lr_steps: [2, 3] #epoch
 
 ##--------------------
 ## run params
 batch_size: 16
 init_epoch: 0
-epoch_num: 50
+epoch_num: 35
 step_per_save: epoch
 # paths <SHOULD JUST CHANGE TRAIN DATA!>
 
-train_data: "./data/_small_ds.txt"
-valid_data: "C:/Users/84982/Documents/GitHub/arcface_experiment/data/validDS.tfrecord"
-test_data: "./data/lfw"
-save_dir : 'C:/Users/84982/Documents/GitHub/arcface_experiment/save'
+train_data: ""
+valid_data: ""
+test_data: ""
+save_dir : ''

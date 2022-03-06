@@ -65,8 +65,8 @@ def get_featurs(model, dataset, device=torch.device('cpu')):
     thresholds = np.arange(0, 4, 0.01)
     dists = np.array(result['prob'])
     actual_issame = np.array(result['issame']) 
-    tpr, fpr, acc, best = calculate_roc(thresholds, dists, actual_issame)
-    return np.mean(acc)
+    tpr, fpr, acc, best_thresholds = calculate_roc(thresholds, dists, actual_issame)
+    return np.mean(acc), acc, best_thresholds
 
 
 def load_model(model, model_path):
@@ -78,9 +78,5 @@ def load_model(model, model_path):
 
 
 def evaluate_model(model, dataset, device):
-    s = time.time()
-    acc= get_featurs(model, dataset, device=device)
-    t = time.time() - s
-    print('\t--total time is {:.3f}'.format(t))
-    print('\t--lfw face verification accuracy: {:.5f}'.format(acc))
+    acc, _, _= get_featurs(model, dataset, device=device)
     return acc
