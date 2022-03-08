@@ -53,5 +53,5 @@ During the competition of LFR, we found some useful training tricks for face rec
 1. [InsightFace mxnet](https://github.com/deepinsight/insightface)
 2. [InsightFace : Additive Angular Margin Loss for Deep Face Recognition](https://arxiv.org/abs/1801.07698)
 3. [AirFace](https://arxiv.org/pdf/1907.12256.pdf)
-4. [Insightface_TF] (https://github.com/auroua/InsightFace_T)
+4. [Insightface_TF](https://github.com/auroua/InsightFace_TF)
 
