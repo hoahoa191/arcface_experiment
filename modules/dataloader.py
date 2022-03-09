@@ -56,15 +56,15 @@ class Dataset(data.Dataset):
 
 class LFWdataset(data.Dataset):
 
-    def __init__(self, data_list_file,  path, input_shape=(1, 112, 112)):
+    def __init__(self, data_list_file, input_shape=(1, 112, 112)):
         self.input_shape = input_shape
         
         with open(os.path.join(data_list_file), 'r') as fd:
             imgs = fd.readlines()
         
         imgs = [line.split() for line in imgs]
-        imgs = [[os.path.join(path, img[0].strip()), 
-                os.path.join(path, img[1].strip()),
+        imgs = [[os.path.join(img[0].strip()), 
+                os.path.join(img[1].strip()),
                 int(img[2])] for img in imgs]
                 
         self.imgs = np.random.permutation(imgs)

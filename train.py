@@ -11,7 +11,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from modules.models import get_model
 from modules.dataloader import get_DataLoader, Dataset, LFWdataset
-from modules.partial_fc import CosMarginProduct, ArcMarginProduct, NormalFCLayer, AirMarginProduct
+from modules.partial_fc import CosMarginProduct, ArcMarginProduct, NormalFCLayer
 from modules.evaluate import evaluate_model
 from modules.focal_loss import *
 
@@ -21,7 +21,7 @@ def get_args():
     parser.add_argument('--c', type=str, default='./configs/res50.yaml', help='config path')
     parser.add_argument("--n", type=int, default=2, help="the number of workers")
     parser.add_argument("--t", type=str, help="file contain training img paths")
-    parser.add_argument("--v", type=str, help="folder contain verification imgs")
+    parser.add_argument("--v", type=str, help="file contain training verification imgs")
     return parser.parse_args()
 
 def save_model(model, save_path, name, iter_cnt):
@@ -47,8 +47,7 @@ def main(cfg, img_file, test_file, n_workers=2):
                                    shuffle=True,
                                   num_workers=n_workers)
     #valid data
-    test_dataset = LFWdataset(data_list_file=os.path.join(test_file, "lfw_pair.txt").replace("\\", "/"),
-                                path=test_file)
+    test_dataset = LFWdataset(data_list_file=os.path.join(test_file, "lfw_pair.txt").replace("\\", "/"))
     testloader = get_DataLoader(test_dataset,
                                 batch_size=cfg['batch_size'],
                                 shuffle=True,
@@ -63,11 +62,6 @@ def main(cfg, img_file, test_file, n_workers=2):
     elif cfg['loss'].lower() == 'arcloss':
         print("use ArcLoss")
         partial_fc = ArcMarginProduct(in_features=cfg['embd_size'],
-                                out_features=cfg['class_num'],
-                                s=cfg['logits_scale'], m=cfg['logits_margin'])
-    elif cfg['loss'].lower() == 'airloss':
-        print("use L-ArcLoss")
-        partial_fc = AirMarginProduct(in_features=cfg['embd_size'],
                                 out_features=cfg['class_num'],
                                 s=cfg['logits_scale'], m=cfg['logits_margin'])
     else:

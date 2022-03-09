@@ -22,8 +22,7 @@ def main(cfg, save_folder, test_file, start_e=1, n_workers=2):
     best_t = None
     max_acc = 0.0
     #getdata
-    test_dataset = LFWdataset(data_list_file=os.path.join(test_file, "lfw_pair.txt").replace("\\", "/"),
-                                path=test_file)
+    test_dataset = LFWdataset(data_list_file=os.path.join(test_file, "lfw_pair.txt").replace("\\", "/"))
     testloader = get_DataLoader(test_dataset,
                                 batch_size=cfg['batch_size'],
                                 shuffle=True,
