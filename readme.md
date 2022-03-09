@@ -15,8 +15,10 @@ This is a tensorflow implementation of paper "[ArcFace: Additive Angular Margin 
 7. Losses    
    7.1 *Arcface loss [done!]*    
    7.2 *Cosface loss [done!]*
-   7.3 **Li Arcface loss [todo]**   
-   7.4 **Sphereface loss [todo]**    
+   
+   7.3 *Li Arcface loss [done!]*   
+   7.4 **Sphereface loss [todo]**
+   7.5 **Magface loss [todo]**    
 
 
 ## Data Prepare
