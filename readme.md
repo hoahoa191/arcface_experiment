@@ -7,16 +7,16 @@ This is a tensorflow implementation of paper "[ArcFace: Additive Angular Margin 
 
 1. *Train with softmax [done!]*
 2. *Model evaluation [done!]*
-4. *Get embedding with pretrained model [done!]*
-5. *Train with Additive Margin loss [done!]*
-6. Backbones    
-   6.1 *ResNet [done!]*    
-   6.2 **mobleFacenet [todo]**    
-7. Losses    
-   7.1 *Arcface loss [done!]*    
-   7.2 *Cosface loss [done!]*
+3. *Get embedding with pretrained model [done!]*
+4. *Train with Additive Margin loss [done!]*
+5. Backbones    
+   5.1 *ResNet [done!]*    
+   5.2 **mobleFacenet [todo]**    
+6. Losses    
+   6.1 *Arcface loss [done!]*    
+   6.2 *Cosface loss [done!]*
    
-   7.3 **Sphereface loss [todo]** 
+   6.3 **Sphereface loss [todo]** 
 
 
 ## Data Prepare
