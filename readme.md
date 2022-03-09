@@ -10,11 +10,12 @@ This is a tensorflow implementation of paper "[ArcFace: Additive Angular Margin 
 4. *Get embedding with pretrained model [done!]*
 5. *Train with Additive Margin loss [done!]*
 6. Backbones    
-   7.1 *ResNet [done!]*    
-   7.2 **mobleFacenet [todo]**    
+   6.1 *ResNet [done!]*    
+   6.2 **mobleFacenet [todo]**    
 7. Losses    
    7.1 *Arcface loss [done!]*    
    7.2 *Cosface loss [done!]*
+   
    7.3 **Sphereface loss [todo]** 
 
 
